@@ -68,6 +68,7 @@ enum ModelTypes {
     gpt4oMini = "gpt-4o-mini",
     DeepseekR1 = "DeepSeek-R1",
     DeepseekV3 = "deepseek-chat",
+    LMStudio = "lmstudio",
 }
 
 export interface IModelOption {

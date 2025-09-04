@@ -45,5 +45,15 @@ export const modelConfig: ModelConfig[] = [
         provider: 'deepseek',
         description: 'Deepseek V3 model',
         functionCall: true,
+    },
+    {
+        modelName: 'LM Studio',
+        modelKey: 'lmstudio',
+        useImage: false,
+        provider: 'lmstudio',
+        description: 'Local LM Studio model',
+        apiUrl: 'http://localhost:1234/v1',
+        apiKey: '',
+        functionCall: false,
     }
 ]
