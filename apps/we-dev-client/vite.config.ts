@@ -22,8 +22,8 @@ export default defineConfig(async ({ mode }) => {
           if (id.includes("generateJSX.ts")) {
             return {
               code: code.replace(
-                /import.*from ['"]\.\/images\/\${imageName}['"];?/g,
-                "const image = await import(`./images/${imageName}`);"
+                  /import.*from ['"]\.\/images\/\${imageName}['"];?/g,
+                  "const image = await import(`./images/${imageName}`);"
               ),
               map: null,
             };
@@ -48,21 +48,25 @@ export default defineConfig(async ({ mode }) => {
       }),
 
       react(),
-      electron([
-        {
-          // Main process entry file of the Electron App
-          entry: "electron/main.ts",
-        },
-        {
-          entry: "electron/preload.ts",
-          onstart(options) {
-            options.reload();
-          },
-        },
-      ]),
+      ...(isElectron
+          ? [
+            electron([
+              {
+                // Main process entry file of the Electron App
+                entry: "electron/main.ts",
+              },
+              {
+                entry: "electron/preload.ts",
+                onstart(options) {
+                  options.reload();
+                },
+              },
+            ]),
+          ]
+          : []),
     ],
 
-    base: "./", 
+    base: "./",
     build: {
       outDir: "dist",
       emptyOutDir: true,
@@ -76,25 +80,25 @@ export default defineConfig(async ({ mode }) => {
           },
         },
       },
-      copyPublicDir: true, 
+      copyPublicDir: true,
       assetsDir: "assets",
     },
 
     server: {
       headers: isElectron
-        ? {}
-        : {
+          ? {}
+          : {
             "Cross-Origin-Embedder-Policy": "credentialless",
             "Cross-Origin-Opener-Policy": "same-origin",
           },
       watch: {
-        ignored: ["**/workspace/**"], 
+        ignored: ["**/workspace/**"],
       },
     },
 
     css: {
       postcss: {
-        plugins: [require("tailwindcss"), require("autoprefixer")], 
+        plugins: [require("tailwindcss"), require("autoprefixer")],
       },
     },
 
