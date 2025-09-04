@@ -55,6 +55,33 @@ export const UploadButtons: React.FC<UploadButtonsProps> = ({
     setIsFigmaModalOpen(false)
   }
 
+  // provider
+  const groupedOptions = React.useMemo(() => {
+    const groups: {
+      cloud: Record<string, IModelOption[]>;
+      local: Record<string, IModelOption[]>;
+    } = { cloud: {}, local: {} };
+    modelOptions.forEach((m) => {
+      const provider = m.provider || 'unknown';
+      const type = provider === 'ollama' || provider === 'lmstudio' ? 'local' : 'cloud';
+      if (!groups[type][provider]) {
+        groups[type][provider] = [];
+      }
+      groups[type][provider].push(m);
+    });
+    return groups;
+  }, [modelOptions]);
+
+  const [hoverProvider, setHoverProvider] = useState<string | null>(null);
+
+  const providerLabels: Record<string, string> = {
+    openai: 'OpenAI',
+    claude: 'Anthropic',
+    deepseek: 'DeepSeek',
+    ollama: 'Ollama',
+    lmstudio: 'LM Studio',
+  };
+  
   // 定义一个可复用的按钮样式组件
   const ToolbarButton = React.forwardRef<HTMLButtonElement, any>((props, ref) => (
     <button
@@ -181,50 +208,94 @@ export const UploadButtons: React.FC<UploadButtonsProps> = ({
         </button>
 
         {isOpen && (
-          <div className="absolute bottom-full left-0 mb-1 w-[160px] bg-white dark:bg-[#18181a] border border-gray-200 dark:border-gray-600/30 rounded-lg shadow-lg overflow-hidden z-50">
-            <div className="flex flex-col w-full">
-              {modelOptions.map((model) => (
-                <button
-                  key={model.value}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    e.preventDefault()
-                    handleModelSelect(model as IModelOption)
-                    clearImages()
-                  }}
-                  className={classNames(
-                    "w-full px-3 py-1.5 flex justify-between text-left text-[11px] transition-colors duration-200",
-                    "hover:bg-gray-100 dark:hover:bg-[#252525]",
-                    baseModal.value === model.value
-                      ? "text-blue-600 dark:text-blue-400"
-                      : "text-gray-700 dark:text-gray-300"
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    {model.provider &&
-                      aiProvierIcon[model.provider] &&
-                      React.createElement(aiProvierIcon[model.provider])}
-                    {model.label}
-                  </div>
-                  {/* TODO 最好之后可以是 tooltip ，不想用 antd，这里不想动了 */}
-                  <div className="flex">
-                    {model.quota}
-                    {/* {Array.from(
-                      { length: Math.floor(model.quota) },
-                      (_, index) => (
-                        <div key={index} className="flex">
-                          <span className="icon-[line-md--star-filled] text-primary"></span>
+            <div className="absolute bottom-full left-0 mb-1 w-[180px] bg-white dark:bg-[#18181a] border border-gray-200 dark:border-gray-600/30 rounded-lg shadow-lg z-50">
+              <div className="flex flex-col w-full text-[11px]">
+                <div className="px-3 py-1 text-gray-400">Cloud Models</div>
+                {Object.entries(groupedOptions.cloud).map(([provider, models]) => (
+                    <div
+                        key={provider}
+                        className="relative"
+                        onMouseEnter={() => setHoverProvider(provider)}
+                        onMouseLeave={() => setHoverProvider(null)}
+                    >
+                      <div className="w-full px-3 py-1.5 flex justify-between hover:bg-gray-100 dark:hover:bg-[#252525] cursor-pointer">
+                        <div className="flex items-center gap-2">
+                          {aiProvierIcon[provider] && React.createElement(aiProvierIcon[provider])}
+                          {providerLabels[provider] || provider}
                         </div>
-                      )
-                    )}
-                    {model.quota % 1 !== 0 && (
-                      <span className="icon-[line-md--star-filled-half] text-primary"></span>
-                    )} */}
-                  </div>
-                </button>
-              ))}
+                        <span className="text-gray-400">{models.length} models</span>
+                      </div>
+                      {hoverProvider === provider && (
+                          <div className="absolute top-0 left-full ml-1 w-[160px] bg-white dark:bg-[#18181a] border border-gray-200 dark:border-gray-600/30 rounded-lg shadow-lg">
+                            {models.map(model => (
+                                <button
+                                    key={model.value}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      handleModelSelect(model as IModelOption);
+                                      clearImages();
+                                      setIsOpen(false);
+                                    }}
+                                    className={classNames(
+                                        "w-full px-3 py-1.5 text-left transition-colors duration-200",
+                                        "hover:bg-gray-100 dark:hover:bg-[#252525]",
+                                        baseModal.value === model.value
+                                            ? "text-blue-600 dark:text-blue-400"
+                                            : "text-gray-700 dark:text-gray-300",
+                                    )}
+                                >
+                                  {model.label}
+                                </button>
+                            ))}
+                          </div>
+                      )}
+                    </div>
+                ))}
+                <div className="px-3 py-1 mt-2 text-gray-400 border-t border-gray-200 dark:border-gray-600/30">Local models</div>
+                {Object.entries(groupedOptions.local).map(([provider, models]) => (
+                    <div
+                        key={provider}
+                        className="relative"
+                        onMouseEnter={() => setHoverProvider(provider)}
+                        onMouseLeave={() => setHoverProvider(null)}
+                    >
+                      <div className="w-full px-3 py-1.5 flex justify-between hover:bg-gray-100 dark:hover:bg-[#252525] cursor-pointer">
+                        <div className="flex items-center gap-2">
+                          {aiProvierIcon[provider] && React.createElement(aiProvierIcon[provider])}
+                          {providerLabels[provider] || provider}
+                        </div>
+                        <span className="text-gray-400">{models.length > 0 ? `${models.length} models` : 'Error loading'}</span>
+                      </div>
+                      {hoverProvider === provider && models.length > 0 && (
+                          <div className="absolute top-0 left-full ml-1 w-[160px] bg-white dark:bg-[#18181a] border border-gray-200 dark:border-gray-600/30 rounded-lg shadow-lg">
+                            {models.map(model => (
+                                <button
+                                    key={model.value}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      handleModelSelect(model as IModelOption);
+                                      clearImages();
+                                      setIsOpen(false);
+                                    }}
+                                    className={classNames(
+                                        "w-full px-3 py-1.5 text-left transition-colors duration-200",
+                                        "hover:bg-gray-100 dark:hover:bg-[#252525]",
+                                        baseModal.value === model.value
+                                            ? "text-blue-600 dark:text-blue-400"
+                                            : "text-gray-700 dark:text-gray-300",
+                                    )}
+                                >
+                                  {model.label}
+                                </button>
+                            ))}
+                          </div>
+                      )}
+                    </div>
+                ))}
+              </div>
             </div>
-          </div>
         )}
       </div>
     </div>
