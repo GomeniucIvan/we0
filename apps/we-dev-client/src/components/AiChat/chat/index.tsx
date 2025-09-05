@@ -59,8 +59,7 @@ export const excludeFiles = [
     "/miniprogram/components/weicon/index.css",
 ];
 
-const API_BASE = process.env.APP_BASE_URL;
-console.log(API_BASE, 'API_BASE')
+const API_BASE = process.env.APP_BASE_URL || "";
 
 enum ModelTypes {
     Claude37sonnet = "claude-3-7-sonnet-20250219",
@@ -81,6 +80,50 @@ export interface IModelOption {
     provider?: string;
     functionCall?: boolean;
 }
+
+const DEFAULT_MODEL_OPTIONS: IModelOption[] = [
+    {
+        value: ModelTypes.Claude35sonnet,
+        label: "Claude 3.5 Sonnet",
+        useImage: true,
+        quota: 2,
+        provider: "claude",
+        functionCall: true,
+    },
+    {
+        value: ModelTypes.gpt4oMini,
+        label: "gpt-4o-mini",
+        useImage: false,
+        quota: 0,
+        provider: "openai",
+        functionCall: true,
+    },
+    {
+        value: ModelTypes.DeepseekR1,
+        label: "deepseek-R1",
+        useImage: false,
+        quota: 0,
+        provider: "deepseek",
+        functionCall: false,
+    },
+    {
+        value: ModelTypes.DeepseekV3,
+        label: "deepseek-V3",
+        useImage: false,
+        quota: 0,
+        provider: "deepseek",
+        functionCall: true,
+    },
+    {
+        value: ModelTypes.LMStudio,
+        label: "LM Studio",
+        useImage: false,
+        quota: 0,
+        provider: "lmstudio",
+        functionCall: false,
+    },
+];
+
 
 function convertToBoltAction(obj: Record<string, string>): string {
     return Object.entries(obj)
@@ -146,7 +189,6 @@ export const BaseChat = ({uuid: propUuid}: { uuid?: string }) => {
 
     const updateConvertToBoltAction = convertToBoltAction(filesUpdateObj);
 
-    // 使用 ollama 模型 获取模型列表
     useEffect(() => {
         fetch(`${API_BASE}/api/model`, {
             method: "POST",
@@ -154,12 +196,16 @@ export const BaseChat = ({uuid: propUuid}: { uuid?: string }) => {
                 "Content-Type": "application/json",
             },
         })
-            .then((res) => res.json())
+            .then((res) => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+            })
             .then((data) => {
-                setModelOptions(data);
+                setModelOptions(Array.isArray(data) && data.length ? data : DEFAULT_MODEL_OPTIONS);
             })
             .catch((error) => {
                 console.error("Failed to fetch model list:", error);
+                setModelOptions(DEFAULT_MODEL_OPTIONS);
             });
     }, []);
 
