@@ -65,3 +65,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 AI_RULES.md
+pnpm-lock.yaml
