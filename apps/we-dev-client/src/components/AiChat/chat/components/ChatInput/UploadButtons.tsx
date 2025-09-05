@@ -11,16 +11,16 @@ import { aiProvierIcon } from "./config"
 import MCPToolsButton from "./MCPToolsButton"
 
 export const UploadButtons: React.FC<UploadButtonsProps> = ({
-  isLoading,
-  isUploading,
-  append,
-  onImageClick,
-  baseModal,
-  messages,
-  handleSubmitWithFiles,
-  setMessages,
-  setBaseModal,
-}) => {
+                                                              isLoading,
+                                                              isUploading,
+                                                              append,
+                                                              onImageClick,
+                                                              baseModal,
+                                                              messages,
+                                                              handleSubmitWithFiles,
+                                                              setMessages,
+                                                              setBaseModal,
+                                                            }) => {
   const [isOpen, setIsOpen] = useState(false)
   const { t } = useTranslation()
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -32,8 +32,8 @@ export const UploadButtons: React.FC<UploadButtonsProps> = ({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+          dropdownRef.current &&
+          !dropdownRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false)
       }
@@ -46,16 +46,10 @@ export const UploadButtons: React.FC<UploadButtonsProps> = ({
   const handleModelSelect = (model: IModelOption) => {
     setBaseModal(model)
     setIsOpen(false)
-    console.log("Selected model:", model.value)
+    clearImages()
   }
 
-  const handleFigmaSubmit = () => {
-    localStorage.setItem('figmaUrl', figmaUrl)
-    localStorage.setItem('figmaToken', figmaToken)
-    setIsFigmaModalOpen(false)
-  }
-
-  // provider
+  // Group models by provider and type (cloud/local)
   const groupedOptions = React.useMemo(() => {
     const groups: {
       cloud: Record<string, IModelOption[]>;
@@ -73,67 +67,68 @@ export const UploadButtons: React.FC<UploadButtonsProps> = ({
   }, [modelOptions]);
 
   const [hoverProvider, setHoverProvider] = useState<string | null>(null);
+  const [hoverLocalProvider, setHoverLocalProvider] = useState<string | null>(null);
 
   const providerLabels: Record<string, string> = {
     openai: 'OpenAI',
     claude: 'Anthropic',
-    deepseek: 'DeepSeek',
+    google: 'Google',
+    openrouter: 'OpenRouter',
     ollama: 'Ollama',
     lmstudio: 'LM Studio',
   };
-  
-  // 定义一个可复用的按钮样式组件
+
+  // Define a reusable button style component
   const ToolbarButton = React.forwardRef<HTMLButtonElement, any>((props, ref) => (
-    <button
-      ref={ref}
-      {...props}
-      className={classNames(
-        "p-2 text-gray-600 dark:text-gray-500 flex hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-500/20 rounded-lg transition-all duration-200",
-        props.disabled && "opacity-50 cursor-not-allowed",
-        props.className
-      )}
-    >
-      {props.children}
-    </button>
+      <button
+          ref={ref}
+          {...props}
+          className={classNames(
+              "p-2 text-gray-600 dark:text-gray-500 flex hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-500/20 rounded-lg transition-all duration-200",
+              props.disabled && "opacity-50 cursor-not-allowed",
+              props.className
+          )}
+      >
+        {props.children}
+      </button>
   ))
   const isElectron = typeof window !== 'undefined' && !!window.electron;
-  
+
   const canUseMCP = isElectron && baseModal.functionCall;
 
-
   return (
-    <div className="flex items-center">
-      <div className="flex items-center gap-2">
-        {/* MCP Tools Button - Disabled when functionCall is false */}
-        {isElectron && (
-          <Tooltip
-            title={
-              <div className="text-xs">
-                <div className="font-medium mb-1">
-                  {!canUseMCP
-                    ? t("chat.buttons.mcp_disabled")
-                    : t("chat.buttons.mcp_tools")}
-                </div>
-                <div className="text-gray-300">
-                  {!canUseMCP
-                    ? t("chat.buttons.not_support_mcp")
-                    : t("chat.buttons.click_to_use_mcp")}
-                </div>
-              </div>
-            }
-            placement="bottom"
-          >
+      <div className="flex items-center">
+        <div className="flex items-center gap-2">
+          {/* MCP Tools Button - Disabled when functionCall is false */}
+          {isElectron && (
+              <Tooltip
+                  title={
+                    <div className="text-xs">
+                      <div className="font-medium mb-1">
+                        {!canUseMCP
+                            ? t("chat.buttons.mcp_disabled")
+                            : t("chat.buttons.mcp_tools")}
+                      </div>
+                      <div className="text-gray-300">
+                        {!canUseMCP
+                            ? t("chat.buttons.not_support_mcp")
+                            : t("chat.buttons.click_to_use_mcp")}
+                      </div>
+                    </div>
+                  }
+                  placement="bottom"
+              >
             <span className={!canUseMCP ? "cursor-not-allowed" : ""}>
-              <MCPToolsButton 
-                ToolbarButton={ToolbarButton} 
-                disabled={!canUseMCP}
+              <MCPToolsButton
+                  ToolbarButton={ToolbarButton}
+                  disabled={!canUseMCP}
               />
             </span>
-          </Tooltip>
-        )}
+              </Tooltip>
+          )}
 
-        {/* figma todo */}
-        {/* <Tooltip
+          {/* figma todo */}
+          {/* <Tooltip
           title={
             <div className="text-xs">
               <div className="font-medium mb-1">
@@ -152,152 +147,147 @@ export const UploadButtons: React.FC<UploadButtonsProps> = ({
           </button>
         </Tooltip> */}
 
-        <Tooltip
-          title={
-            <div className="text-xs">
-              <div className="font-medium mb-1">
-                {isLoading || isUploading || !baseModal.useImage
-                  ? t("chat.buttons.upload_disabled")
-                  : t("chat.buttons.upload_image")}
-              </div>
-              <div className="text-gray-300">
-                {isLoading || isUploading
-                  ? t("chat.buttons.waiting")
-                  : !baseModal.useImage
-                    ? t("chat.buttons.not_support_image")
-                    : t("chat.buttons.click_to_upload")}
-              </div>
-            </div>
-          }
-          placement="bottom"
-        >
-          <ToolbarButton
-            type="button"
-            onClick={onImageClick}
-            disabled={isLoading || isUploading || !baseModal.useImage}
-            // className={classNames(
-            //   "p-2 text-gray-600 dark:text-gray-500 flex hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-500/20 rounded-lg transition-all duration-200",
-            //   (isLoading || isUploading || !baseModal.useImage) &&
-            //   "opacity-50 cursor-not-allowed"
-            // )}
+          <Tooltip
+              title={
+                <div className="text-xs">
+                  <div className="font-medium mb-1">
+                    {isLoading || isUploading || !baseModal.useImage
+                        ? t("chat.buttons.upload_disabled")
+                        : t("chat.buttons.upload_image")}
+                  </div>
+                  <div className="text-gray-300">
+                    {isLoading || isUploading
+                        ? t("chat.buttons.waiting")
+                        : !baseModal.useImage
+                            ? t("chat.buttons.not_support_image")
+                            : t("chat.buttons.click_to_upload")}
+                  </div>
+                </div>
+              }
+              placement="bottom"
           >
-            <Image className="w-4 h-4" />
-          </ToolbarButton>
-        </Tooltip>
+            <ToolbarButton
+                type="button"
+                onClick={onImageClick}
+                disabled={isLoading || isUploading || !baseModal.useImage}
+            >
+              <Image className="w-4 h-4" />
+            </ToolbarButton>
+          </Tooltip>
+        </div>
 
-      </div>
+        <div className="relative ml-2" ref={dropdownRef}>
+          <button
+              type="button"
+              onClick={() => setIsOpen(!isOpen)}
+              className={classNames(
+                  "flex items-center justify-between w-[180px] px-2 py-1 text-[11px] text-gray-700 dark:text-gray-300 bg-transparent dark:bg-[#252525] rounded-md transition-colors duration-200",
+                  isOpen
+                      ? "bg-gray-100 dark:bg-[#252525]"
+                      : "hover:bg-gray-100 dark:hover:bg-[#252525]"
+              )}
+          >
+            <span>{baseModal.label}</span>
+            <ChevronDown
+                className={classNames(
+                    "w-3 h-3 text-gray-500 dark:text-gray-400 transition-transform duration-200",
+                    isOpen ? "-rotate-180" : "rotate-0"
+                )}
+            />
+          </button>
 
-      <div className="relative ml-2" ref={dropdownRef}>
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className={classNames(
-            "flex items-center justify-between w-[150px] px-2 py-1 text-[11px] text-gray-700 dark:text-gray-300 bg-transparent dark:bg-[#252525] rounded-md transition-colors duration-200",
-            isOpen
-              ? "bg-gray-100 dark:bg-[#252525]"
-              : "hover:bg-gray-100 dark:hover:bg-[#252525]"
-          )}
-        >
-          <span>{baseModal.label}</span>
-          <ChevronDown
-            className={classNames(
-              "w-3 h-3 text-gray-500 dark:text-gray-400 transition-transform duration-200",
-              isOpen ? "-rotate-180" : "rotate-0"
-            )}
-          />
-        </button>
-
-        {isOpen && (
-            <div className="absolute bottom-full left-0 mb-1 w-[180px] bg-white dark:bg-[#18181a] border border-gray-200 dark:border-gray-600/30 rounded-lg shadow-lg z-50">
-              <div className="flex flex-col w-full text-[11px]">
-                <div className="px-3 py-1 text-gray-400">Cloud Models</div>
-                {Object.entries(groupedOptions.cloud).map(([provider, models]) => (
-                    <div
-                        key={provider}
-                        className="relative"
-                        onMouseEnter={() => setHoverProvider(provider)}
-                        onMouseLeave={() => setHoverProvider(null)}
-                    >
-                      <div className="w-full px-3 py-1.5 flex justify-between hover:bg-gray-100 dark:hover:bg-[#252525] cursor-pointer">
-                        <div className="flex items-center gap-2">
-                          {aiProvierIcon[provider] && React.createElement(aiProvierIcon[provider])}
-                          {providerLabels[provider] || provider}
-                        </div>
-                        <span className="text-gray-400">{models.length} models</span>
-                      </div>
-                      {hoverProvider === provider && (
-                          <div className="absolute top-0 left-full ml-1 w-[160px] bg-white dark:bg-[#18181a] border border-gray-200 dark:border-gray-600/30 rounded-lg shadow-lg">
-                            {models.map(model => (
-                                <button
-                                    key={model.value}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      e.preventDefault();
-                                      handleModelSelect(model as IModelOption);
-                                      clearImages();
-                                      setIsOpen(false);
-                                    }}
-                                    className={classNames(
-                                        "w-full px-3 py-1.5 text-left transition-colors duration-200",
-                                        "hover:bg-gray-100 dark:hover:bg-[#252525]",
-                                        baseModal.value === model.value
-                                            ? "text-blue-600 dark:text-blue-400"
-                                            : "text-gray-700 dark:text-gray-300",
-                                    )}
-                                >
-                                  {model.label}
-                                </button>
-                            ))}
+          {isOpen && (
+              <div className="absolute bottom-full left-0 mb-1 w-[240px] bg-white dark:bg-[#18181a] border border-gray-200 dark:border-gray-600/30 rounded-lg shadow-lg z-50 max-h-[300px] overflow-auto">
+                <div className="flex flex-col w-full text-[11px]">
+                  <div className="px-3 py-1 text-gray-400 font-semibold">Cloud Models</div>
+                  {Object.entries(groupedOptions.cloud).map(([provider, models]) => (
+                      <div
+                          key={provider}
+                          className="relative"
+                          onMouseEnter={() => setHoverProvider(provider)}
+                          onMouseLeave={() => setHoverProvider(null)}
+                      >
+                        <div className="w-full px-3 py-1.5 flex justify-between hover:bg-gray-100 dark:hover:bg-[#252525] cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            {aiProvierIcon[provider] && React.createElement(aiProvierIcon[provider])}
+                            {providerLabels[provider] || provider}
                           </div>
-                      )}
-                    </div>
-                ))}
-                <div className="px-3 py-1 mt-2 text-gray-400 border-t border-gray-200 dark:border-gray-600/30">Local models</div>
-                {Object.entries(groupedOptions.local).map(([provider, models]) => (
-                    <div
-                        key={provider}
-                        className="relative"
-                        onMouseEnter={() => setHoverProvider(provider)}
-                        onMouseLeave={() => setHoverProvider(null)}
-                    >
-                      <div className="w-full px-3 py-1.5 flex justify-between hover:bg-gray-100 dark:hover:bg-[#252525] cursor-pointer">
-                        <div className="flex items-center gap-2">
-                          {aiProvierIcon[provider] && React.createElement(aiProvierIcon[provider])}
-                          {providerLabels[provider] || provider}
+                          <span className="text-gray-400">{models.length} models</span>
                         </div>
-                        <span className="text-gray-400">{models.length > 0 ? `${models.length} models` : 'Error loading'}</span>
+                        {hoverProvider === provider && (
+                            <div className="absolute top-0 left-full ml-1 w-[200px] bg-white dark:bg-[#18181a] border border-gray-200 dark:border-gray-600/30 rounded-lg shadow-lg max-h-[300px] overflow-auto z-50">
+                              {models.map(model => (
+                                  <button
+                                      key={model.value}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        handleModelSelect(model as IModelOption);
+                                      }}
+                                      className={classNames(
+                                          "w-full px-3 py-1.5 text-left transition-colors duration-200",
+                                          "hover:bg-gray-100 dark:hover:bg-[#252525]",
+                                          baseModal.value === model.value
+                                              ? "text-blue-600 dark:text-blue-400"
+                                              : "text-gray-700 dark:text-gray-300",
+                                      )}
+                                  >
+                                    {model.label}
+                                  </button>
+                              ))}
+                            </div>
+                        )}
                       </div>
-                      {hoverProvider === provider && models.length > 0 && (
-                          <div className="absolute top-0 left-full ml-1 w-[160px] bg-white dark:bg-[#18181a] border border-gray-200 dark:border-gray-600/30 rounded-lg shadow-lg">
-                            {models.map(model => (
-                                <button
-                                    key={model.value}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      e.preventDefault();
-                                      handleModelSelect(model as IModelOption);
-                                      clearImages();
-                                      setIsOpen(false);
-                                    }}
-                                    className={classNames(
-                                        "w-full px-3 py-1.5 text-left transition-colors duration-200",
-                                        "hover:bg-gray-100 dark:hover:bg-[#252525]",
-                                        baseModal.value === model.value
-                                            ? "text-blue-600 dark:text-blue-400"
-                                            : "text-gray-700 dark:text-gray-300",
-                                    )}
-                                >
-                                  {model.label}
-                                </button>
-                            ))}
+                  ))}
+
+                  <div className="px-3 py-1 mt-2 text-gray-400 font-semibold border-t border-gray-200 dark:border-gray-600/30">Local Models</div>
+                  {Object.entries(groupedOptions.local).map(([provider, models]) => (
+                      <div
+                          key={provider}
+                          className="relative"
+                          onMouseEnter={() => setHoverLocalProvider(provider)}
+                          onMouseLeave={() => setHoverLocalProvider(null)}
+                      >
+                        <div className="w-full px-3 py-1.5 flex justify-between hover:bg-gray-100 dark:hover:bg-[#252525] cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            {aiProvierIcon[provider] && React.createElement(aiProvierIcon[provider])}
+                            {providerLabels[provider] || provider}
                           </div>
-                      )}
-                    </div>
-                ))}
+                          <span className="text-gray-400">{models.length} models</span>
+                        </div>
+                        {hoverLocalProvider === provider && (
+                            <div className="absolute top-0 left-full ml-1 w-[200px] bg-white dark:bg-[#18181a] border border-gray-200 dark:border-gray-600/30 rounded-lg shadow-lg max-h-[300px] overflow-auto z-50">
+                              {models.length === 0 ? (
+                                  <div className="px-3 py-1.5 text-red-500 text-xs">Error loading</div>
+                              ) : (
+                                  models.map(model => (
+                                      <button
+                                          key={model.value}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            e.preventDefault();
+                                            handleModelSelect(model as IModelOption);
+                                          }}
+                                          className={classNames(
+                                              "w-full px-3 py-1.5 text-left transition-colors duration-200",
+                                              "hover:bg-gray-100 dark:hover:bg-[#252525]",
+                                              baseModal.value === model.value
+                                                  ? "text-blue-600 dark:text-blue-400"
+                                                  : "text-gray-700 dark:text-gray-300",
+                                          )}
+                                      >
+                                        {model.label}
+                                      </button>
+                                  ))
+                              )}
+                            </div>
+                        )}
+                      </div>
+                  ))}
+                </div>
               </div>
-            </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
   )
 }
