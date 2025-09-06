@@ -62,7 +62,7 @@ export async function streamResponse(
     };
 
     try {
-        const result = streamTextFn(messages, options, model);
+        const result = await streamTextFn(messages, options, model);
         return result.toDataStreamResponse({
             sendReasoning: true,
         });

@@ -379,6 +379,11 @@ export const BaseChat = ({uuid: propUuid}: { uuid?: string }) => {
         }
     }, [enabledMCPs])
 
+    const chatApiUrl =
+        baseModal.provider === "lmstudio"
+            ? "http://localhost:1234/v1/chat/completions"
+            : `${API_BASE}/api/chat`;
+    
     // 修改 useChat 配置
     const {
         messages: realMessages,
@@ -391,13 +396,15 @@ export const BaseChat = ({uuid: propUuid}: { uuid?: string }) => {
         stop,
         reload,
     } = useChat({
-        api: `${baseChatUrl}/api/chat`,
+        api: chatApiUrl,
         headers: {
-            ...(token && {Authorization: `Bearer ${token}`}),
+            ...(token && baseModal.provider !== "lmstudio" && { Authorization: `Bearer ${token}` }),
+            "Content-Type": "application/json",
         },
         body: {
             model: baseModal.value,
             mode: mode,
+            stream: true,
             otherConfig: {
                 ...otherConfig,
                 extra: {
@@ -418,6 +425,50 @@ export const BaseChat = ({uuid: propUuid}: { uuid?: string }) => {
         },
         id: chatUuid,
         onResponse: async (response) => {
+            if (baseModal.provider === "lmstudio") {
+                const reader = response.body?.getReader();
+                if (!reader) return;
+
+                const decoder = new TextDecoder();
+                let buffer = "";
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+
+                    const lines = buffer.split("\n");
+                    buffer = lines.pop()!; // keep incomplete line
+
+                    for (const line of lines) {
+                        if (line.startsWith("data: ")) {
+                            const data = line.replace("data: ", "").trim();
+                            if (data === "[DONE]") return;
+
+                            try {
+                                const parsed = JSON.parse(data);
+                                const delta = parsed.choices?.[0]?.delta?.content || "";
+
+                                if (delta) {
+                                    setMessages((msgs) => {
+                                        const last = msgs[msgs.length - 1];
+                                        if (last && last.role === "assistant") {
+                                            return [
+                                                ...msgs.slice(0, -1),
+                                                { ...last, content: last.content + delta },
+                                            ];
+                                        }
+                                        return [...msgs, { id: uuidv4(), role: "assistant", content: delta }];
+                                    });
+                                }
+                            } catch (err) {
+                                console.warn("Failed to parse SSE chunk:", data, err);
+                            }
+                        }
+                    }
+                }
+            }
             if (baseModal.from === "ollama") {
                 const reader = response.body?.getReader();
                 if (!reader) return;

@@ -1,7 +1,7 @@
 // Model configuration file
 // Configure models based on actual scenarios
 
-interface ModelConfig {
+export interface ModelConfig {
     modelName: string;
     modelKey: string;
     useImage: boolean;
@@ -57,3 +57,36 @@ export const modelConfig: ModelConfig[] = [
         functionCall: false,
     }
 ]
+
+export async function getModelConfig(): Promise<ModelConfig[]> {
+    const config: ModelConfig[] = [...modelConfig]
+    const lmstudioBase = process.env.LM_STUDIO_URL || 'http://localhost:1234/v1'
+
+    try {
+        const res = await fetch(`${lmstudioBase}/models`, { cache: 'no-store' })
+        if (res.ok) {
+            const data = await res.json()
+            const models = Array.isArray(data.data) ? data.data : []
+            for (const m of models) {
+                const id = m?.id
+                if (!id) continue
+                if (!config.some(item => item.modelKey === id)) {
+                    config.push({
+                        modelName: id,
+                        modelKey: id,
+                        useImage: false,
+                        provider: 'lmstudio',
+                        description: `LM Studio model ${id}`,
+                        apiUrl: lmstudioBase,
+                        apiKey: '',
+                        functionCall: false,
+                    })
+                }
+            }
+        }
+    } catch (e) {
+        console.error('Failed to load LM Studio models', e)
+    }
+
+    return config
+}

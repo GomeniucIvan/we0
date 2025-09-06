@@ -1,38 +1,10 @@
 import { NextResponse } from "next/server";
-import { modelConfig } from "./config";
+import { getModelConfig } from "./config";
+export const dynamic = "force-dynamic";
 
 // 获取模型配置, 可以迁移到配置中心
 export async function POST() {
-    try {
-        // LM Studio
-        const lmstudioBase =
-            modelConfig.find((m) => m.provider === "lmstudio")?.apiUrl ||
-            "http://localhost:1234/v1";
-        const res = await fetch(`${lmstudioBase}/models`);
-        if (res.ok) {
-            const data = await res.json();
-            const models = Array.isArray(data.data) ? data.data : [];
-            for (const m of models) {
-                const id = m?.id;
-                if (!id) continue;
-                // 如果模型列表中没有该模型，则追加到配置中
-                if (!modelConfig.some((item) => item.modelKey === id)) {
-                    modelConfig.push({
-                        modelName: id,
-                        modelKey: id,
-                        useImage: false,
-                        provider: "lmstudio",
-                        description: `LM Studio model ${id}`,
-                        apiUrl: lmstudioBase,
-                        apiKey: "",
-                        functionCall: false,
-                    });
-                }
-            }
-        }
-    } catch (e) {
-        console.error("Failed to load LM Studio models", e);
-    }
+    const modelConfig = await getModelConfig();
 
     // OpenAI models
     try {
