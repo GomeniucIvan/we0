@@ -66,3 +66,4 @@ yarn-error.log*
 next-env.d.ts
 AI_RULES.md
 pnpm-lock.yaml
+apps/we-dev-client/package-lock.json
