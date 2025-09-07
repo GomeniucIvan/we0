@@ -1,3 +1,24 @@
+**/**/node_modules/
+**/workspace/
+**/release/
+**/workspace
+**/.idea
+**/.vscode
+**/.DS_Store
+**/.source
+.turbo/
+.DS_Store
+dist
+**/dist-electron
+
+**/certs
+
+*.log
+**/**/workspace/
+**/**/logs/
+**/**/packages/
+.pnpm-lock.yaml
+
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
@@ -9,6 +30,7 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+
 
 # testing
 /coverage
@@ -23,6 +45,7 @@
 # misc
 .DS_Store
 *.pem
+.idea
 
 # debug
 npm-debug.log*
@@ -39,3 +62,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+AI_RULES.md
+pnpm-lock.yaml
+package-lock.json
