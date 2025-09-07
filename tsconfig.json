@@ -1,24 +1,49 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "strict": false,
-    "skipLibCheck": true,
-    "jsx": "react-jsx",
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ESNext"
-    ],
-    "outDir": "./dist",
     "baseUrl": ".",
+    "target": "ES2017",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    // "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "paths": {
       "@/*": [
-        "packages/*"
+        "./src/*"
       ]
     },
-    "forceConsistentCasingInFileNames": true,
-  }
+    "strict": false
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "./src/utils/messagepParseJson.ts",
+    "next.config.mjs"
+, "src/components/Postcard/postcard.jsx"  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
